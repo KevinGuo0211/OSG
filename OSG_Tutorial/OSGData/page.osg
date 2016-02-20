@@ -1,0 +1,38 @@
+Group {
+  nodeMask 0xffffffff
+  cullingActive TRUE
+  num_children 1
+  MatrixTransform {
+    UniqueID MatrixTransform_0
+    nodeMask 0xffffffff
+    cullingActive TRUE
+    referenceFrame RELATIVE
+    Matrix {
+      -0.952413 -0.304811 0 0
+      0.304811 -0.952413 0 0
+      0 0 1 0
+      0 0 0 1
+    }
+    num_children 1
+    PagedLOD {
+      nodeMask 0xffffffff
+      cullingActive TRUE
+      Center 0 0 0
+      Radius -1
+      RangeMode DISTANCE_FROM_EYE_POINT
+      RangeList 3 {
+        0 50
+        50 100
+        100 200
+      }
+      NumChildrenThatCannotBeExpired 0
+      DisableExternalChildrenPaging 0
+      FileNameList 3 {
+        cow.osg
+        glider.osg
+        cessna.osg
+      }
+      num_children 0
+    }
+  }
+}

@@ -1,3 +1,9 @@
+/* -*-c++-*- OpenSceneGraph
+ * Date: 2016-02-18
+ * Author: Hanyou Yu <freehyan.gmail.com>
+ * Function: 节点添加坐标系
+*/
+
 #include <osgViewer/Viewer>
 #include <osg/Node>
 #include <osg/Group>
@@ -52,8 +58,6 @@ osg::ref_ptr<osg::Node> drawLine()
 	geom->setColorArray(color.get());
 	geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
 
-	//geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINE_STRIP, 0, 4));
-
 	osg::ref_ptr<osg::LineWidth> LineSize = new osg::LineWidth();
 	LineSize->setWidth(5);
 	geode->getOrCreateStateSet()->setAttributeAndModes(LineSize.get(), osg::StateAttribute::ON);
@@ -65,9 +69,7 @@ osg::ref_ptr<osg::Node> drawLine()
 int main()
 {
 	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
-
 	osg::ref_ptr<osg::Group> root = new osg::Group();
-	//osg::ref_ptr<osg::Group> root2 = new osg::Group();
 
 	osg::ref_ptr<osg::Node> node = osgDB::readNodeFile("../Model/bunny.ive");
 	root->addChild(node.get());
@@ -75,10 +77,7 @@ int main()
 
 	osgUtil::Optimizer optimizer;
 	optimizer.optimize(root.get());
-	//optimizer.optimize(root2.get());
-
 	viewer->setSceneData(root.get());
-	//viewer->setSceneData(root2.get());
 	viewer->realize();
 	viewer->run();
 
