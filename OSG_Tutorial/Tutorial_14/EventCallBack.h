@@ -27,7 +27,7 @@ public:
 			{
 				osgGA::GUIActionAdapter* pActionAda = EventVis->getActionAdapter();
 				osgGA::EventQueue::Events& Events = EventVis->getEvents();
-				
+
 				for (osgGA::EventQueue::Events::iterator It = Events.begin(); It!=Events.end(); It++)
 				{
 					handle(*(*It), *(pActionAda));

@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{4CAAAFCF-98E3-431D-8F21-1F3A3DE49C72}</ProjectGuid>
+    <ProjectGuid>{866F98DE-DFEE-41EB-980D-CB8AD8B7C4A2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Tutorial_03</RootNamespace>
+    <RootNamespace>Tutorial_18</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -79,6 +79,8 @@
       <AdditionalDependencies>osg.lib;osgDB.lib;osgViewer.lib;osgUtil.lib;osgGA.lib;</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(OSG_ROOT\)lib2012</AdditionalLibraryDirectories>
+      <AdditionalDependencies>osg.lib;osgDB.lib;osgUtil.lib;osgViewer.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
