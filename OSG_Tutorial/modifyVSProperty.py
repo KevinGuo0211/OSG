@@ -65,8 +65,8 @@ for i in range(len(fileList)):
         
         if (libPos != -1):
             libPos += len(libStr)
-            addLibContent = "\n      <AdditionalLibraryDirectories>$(OSG_ROOT)/lib2012;</AdditionalLibraryDirectories>\n      <AdditionalDependencies>osgd.lib;osgDBd.lib;osgViewerd.lib;osgUtild.lib;osgGAd.lib;</AdditionalDependencies>"
-            addLibContentRea = "\n      <AdditionalLibraryDirectories>$(OSG_ROOT)/lib2012;</AdditionalLibraryDirectories>\n      <AdditionalDependencies>osg.lib;osgDB.lib;osgViewer.lib;osgUtil.lib;osgGA.lib;</AdditionalDependencies>"
+            addLibContent = "\n      <AdditionalLibraryDirectories>$(OSG_ROOT)/lib2012;</AdditionalLibraryDirectories>\n      <AdditionalDependencies>osgd.lib;osgDBd.lib;osgViewerd.lib;osgUtild.lib;osgGAd.lib;osgTextd.lib</AdditionalDependencies>"
+            addLibContentRea = "\n      <AdditionalLibraryDirectories>$(OSG_ROOT)/lib2012;</AdditionalLibraryDirectories>\n      <AdditionalDependencies>osg.lib;osgDB.lib;osgViewer.lib;osgUtil.lib;osgGA.lib;osgText.lib</AdditionalDependencies>"
             if Count == 1:
                 textLines = textLines[:libPos] + addLibContent + textLines[libPos:] 
             else:

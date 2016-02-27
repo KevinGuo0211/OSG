@@ -58,7 +58,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OSG_ROOT)/lib2012;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>osgd.lib;osgDBd.lib;osgViewerd.lib;osgUtild.lib;osgGAd.lib;</AdditionalDependencies>
+      <AdditionalDependencies>osgd.lib;osgDBd.lib;osgViewerd.lib;osgUtild.lib;osgGAd.lib;osgTextd.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -76,7 +76,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OSG_ROOT)/lib2012;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>osg.lib;osgDB.lib;osgViewer.lib;osgUtil.lib;osgGA.lib;</AdditionalDependencies>
+      <AdditionalDependencies>osg.lib;osgDB.lib;osgViewer.lib;osgUtil.lib;osgGA.lib;osgText.lib</AdditionalDependencies>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(OSG_ROOT\)lib2012</AdditionalLibraryDirectories>
@@ -85,6 +85,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PickHandler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PickHandler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
