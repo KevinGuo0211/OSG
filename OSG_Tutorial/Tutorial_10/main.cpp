@@ -47,6 +47,7 @@ public:
 
 		traverse(node, nv);
 	}
+
 	osg::NodePath _nodesToCompute;
 
 	void calcBoundingBox(osg::Vec3f& vCenter, float& vX, float& vY, float& vZ)
@@ -134,7 +135,7 @@ int main()
 	osg::ref_ptr<osg::MatrixTransform> models = new osg::MatrixTransform;
 	models->addChild( cessna.get() );
 	models->addChild( dumptruck.get() );
-	models->setMatrix( osg::Matrix::translate(0.0f, 0.0f, 200.0f) );
+	//models->setMatrix( osg::Matrix::translate(0.0f, 0.0f, 200.0f) );
 
 	// World bounding box callback & node
 	osg::ref_ptr<BoundingBoxCallback> bbcb = new BoundingBoxCallback;
@@ -145,7 +146,7 @@ int main()
 	//bbcb->calcBoundingBox(Center, X, Y , Z);
 
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-	geode->addDrawable( new osg::ShapeDrawable(new osg::Box) );
+	geode->addDrawable( new osg::ShapeDrawable(new osg::Box));
 
 	osg::ref_ptr<osg::MatrixTransform> boundingBoxNode = new osg::MatrixTransform;
 	boundingBoxNode->addChild( geode.get() );
