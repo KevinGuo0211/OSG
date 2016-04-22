@@ -21,9 +21,15 @@
     <ClCompile Include="PickNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="NodeVisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PickNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeVisitor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

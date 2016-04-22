@@ -31,14 +31,16 @@ int main(int argc, char** argv)
 	
 	osg::ref_ptr<osg::MatrixTransform> mt1 = new osg::MatrixTransform;
 	osg::Matrix m;
+	//m.translate(10.0, 0.0, 0.0);
 	m.makeTranslate(osg::Vec3(10.0, 0.0, 0.0));
-	m.makeRotate(45.0, 1.0, 0.0, 0.0);
+//	m.makeRotate(45.0, 1.0, 0.0, 0.0);
 	mt1->setMatrix(m);
 	mt1->addChild(node.get());
 
 	osg::ref_ptr<osg::MatrixTransform> mt2 = new osg::MatrixTransform;
 	osg::Matrix t;
-	t.makeRotate(45.0, 0.0, 1.0, 0.0);	
+
+//	t.makeRotate(45.0, 0.0, 1.0, 0.0);	
 	t.makeTranslate(osg::Vec3(-10.0, 0.0, 0.0));
 	mt2->setMatrix(t);
 	mt2->addChild(node.get());

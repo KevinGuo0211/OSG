@@ -1,4 +1,5 @@
 #include "PickNode.h"
+#include "NodeVisitor.h"
 
 //FUNCTION: detect the memory leak in DEBUG mode
 void installMemoryLeakDetector()
@@ -41,22 +42,24 @@ int main()
 	osg::ref_ptr<osg::Group> RootGroup = new osg::Group;
 	osg::ref_ptr<osg::MatrixTransform> MatrixCowNode = new osg::MatrixTransform;
 	osg::ref_ptr<osg::Node> CowNode = osgDB::readNodeFile("cow.osg");
+
 	osg::Matrix m;
 	m.makeTranslate(-20, 0.0, 0.0);
 	MatrixCowNode->setMatrix(m);
 	MatrixCowNode->addChild(CowNode.get());
 
 	osg::ref_ptr<osg::Node> BunnyNode = osgDB::readNodeFile("../OSGData/cessna.osg");
-	RootGroup->addChild(CowNode.get());
+	RootGroup->addChild(MatrixCowNode.get());
 	RootGroup->addChild(BunnyNode.get());
-
 	pViewer->addEventHandler(new CPickNode);
+	//CowNode->addUpdateCallback(new CNodeVisitor);
+
 	osgUtil::Optimizer optimizer;
 	optimizer.optimize(RootGroup.get());
-
 	pViewer->setSceneData(RootGroup.get());
 	pViewer->realize();
 	pViewer->run();
+
 
 	return 1;
 }

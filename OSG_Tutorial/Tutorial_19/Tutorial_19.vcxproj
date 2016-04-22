@@ -83,9 +83,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="NodeVisitor.cpp" />
     <ClCompile Include="PickNode.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="NodeVisitor.h" />
     <ClInclude Include="PickNode.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

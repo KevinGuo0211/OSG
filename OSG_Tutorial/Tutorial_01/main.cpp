@@ -7,6 +7,9 @@
 #include <osgDB/ReadFile>
 #include <osgDB/WriteFile>
 #include <osgUtil/Optimizer>
+#include <osg/MatrixTransform>
+#include <osg/BlendFunc>
+#include <osg/ShapeDrawable>
 
 //FUNCTION: detect the memory leak in DEBUG mode
 void installMemoryLeakDetector()
@@ -26,16 +29,50 @@ void installMemoryLeakDetector()
 int main()
 {
 	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
-	osg::ref_ptr<osg::Node> node = osgDB::readNodeFile("../OSGData/cow.osg");
-	osg::ref_ptr<osg::Node> node2 = osgDB::readNodeFile("../OSGData/lz.osg");
 
+// 	osg::ref_ptr<osg::ShapeDrawable> doorShape1 =  new osg::ShapeDrawable( new osg::Box(osg::Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 1.0f) );  
+// 	osg::ref_ptr<osg::ShapeDrawable> doorShape =  new osg::ShapeDrawable( new osg::Box(osg::Vec3(0.0f, 0.0f, 0.0f), 2.0f, 2.0f, 2.0f) );  
+// 	doorShape->setColor( osg::Vec4(0.0f, 1.0f, 1.0f, 0.5f) );   // alpha value  
+// 	doorShape1->setColor( osg::Vec4(0.0f, 1.0f, 0.0f, 0.5f) ); 
+// 
+// 	osg::StateSet* stateset = doorShape->getOrCreateStateSet();  
+// 	stateset->setMode(GL_BLEND,osg::StateAttribute::ON);
+// 	osg::ref_ptr<osg::BlendFunc> blendFunc = new osg::BlendFunc();  // blend func      
+// 	blendFunc->setSource(osg::BlendFunc::SRC_ALPHA);         
+// 	blendFunc->setDestination(osg::BlendFunc::ONE_MINUS_SRC_ALPHA);          
+// 	stateset->setAttributeAndModes( blendFunc );  
+// 	stateset->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);    
+// 
+// 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;  
+// 	geode->addDrawable( doorShape.get() );  
+// 	osg::ref_ptr<osg::Geode> geode1 = new osg::Geode;  
+// 	geode1->addDrawable( doorShape1.get() );  
+// 
+// 	osg::ref_ptr<osg::MatrixTransform> trans = new osg::MatrixTransform;  
+// 	trans->addChild( geode.get() );  
+// 	trans->addChild( geode1.get() );  
+// 	osg::ref_ptr<osg::MatrixTransform> RootGroup = new osg::MatrixTransform;
+
+	osg::ref_ptr<osg::Node> CowNode = osgDB::readNodeFile("cow.osg");
+	osg::StateSet* pStateSet = CowNode->getOrCreateStateSet();
+	pStateSet->setMode(GL_BLEND, osg::StateAttribute::ON);
+	osg::ref_ptr<osg::BlendFunc> BlendFun = new osg::BlendFunc;
+	BlendFun->setSource(osg::BlendFunc::SRC_ALPHA);
+	BlendFun->setDestination(osg::BlendFunc::ONE_MINUS_SRC_ALPHA);
+	pStateSet->setAttributeAndModes(BlendFun);
+	pStateSet->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+//	osg::Group* pGroup = dynamic_cast<osg::Group*>(CowNode.get());
+	osg::ref_ptr<osg::Node> CoordNode = osgDB::readNodeFile("test.ive");
+	osg::ref_ptr<osg::MatrixTransform> CoordNodeMatrix = new osg::MatrixTransform;
+	osg::Matrix Mat;
+	Mat.makeScale(0.1, 0.1, 0.1);
+	CoordNodeMatrix->addChild(CoordNode);
+	CoordNodeMatrix->setMatrix(Mat);
+	
 	osg::ref_ptr<osg::Group> root = new osg::Group;
-	root->addChild(node.get());
-
-	osg::ref_ptr<osg::Group> root2 = new osg::Group;
-	root2->addChild(node2.get());
-
-	root = root2;
+	root->addChild(CoordNodeMatrix.get());
+	root->addChild(CowNode.get());
 
 	osgUtil::Optimizer optimizer;
 	optimizer.optimize(root.get());

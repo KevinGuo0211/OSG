@@ -1,144 +1,112 @@
-/**********************************************************
-*Write by FlySky
-*zzuxp@163.com  http://www.OsgChina.org   
-**********************************************************/
+/* -*-c++-*- OpenSceneGraph Cookbook
+ * Chapter 6 Recipe 4
+ * Author: Wang Rui <wangray84 at gmail dot com>
+*/
 
-#include <osgViewer/Viewer>
-#include <osgViewer/ViewerEventHandlers>
-
-#include <osg/Node>
-#include <osg/Geode>
+#include <osg/Texture2D>
 #include <osg/Group>
-
 #include <osgDB/ReadFile>
-#include <osgDB/WriteFile>
+#include <osgViewer/Viewer>
+#include <osg/PolygonMode>
+//#include "CommonFunctions"
 
-#include <osgFX/Scribe>
-
-#include <osgGA/GUIEventHandler>
-
-#include <osgUtil/Optimizer>
-
-#include <iostream>
-
-//对象选取事件处理器
-class PickHandler : public osgGA::GUIEventHandler 
+//***********************************************************
+//FUNCTION:
+osg::Geode* createScreenQuad( float width, float height,
+							 float scale )
 {
-public: 
+	osg::Geometry* geom = osg::createTexturedQuadGeometry(
+		osg::Vec3(), osg::Vec3(width,0.0f,0.0f),
+		osg::Vec3(0.0f,height,0.0f),
+		0.0f, 0.0f, width*scale, height*scale );
+	osg::ref_ptr<osg::Geode> quad = new osg::Geode;
+	quad->addDrawable( geom );
+	int values = osg::StateAttribute::OFF|
+		osg::StateAttribute::PROTECTED;
+	quad->getOrCreateStateSet()->setAttribute(
+		new osg::PolygonMode(osg::PolygonMode::FRONT_AND_BACK,
+		osg::PolygonMode::FILL), values );
+	quad->getOrCreateStateSet()->setMode( GL_LIGHTING, values );
+	return quad.release();
+}
 
-	PickHandler():
-		_mx(0.0f),
-		_my(0.0f)
-	{
-		//
-	}
-
-	~PickHandler()
-	{
-		//
-	}
-	//事件处理函数
-	bool handle(const osgGA::GUIEventAdapter& ea,osgGA::GUIActionAdapter& aa)
-	{
-		osg::ref_ptr<osgViewer::View> view = dynamic_cast<osgViewer::View*>(&aa);
-		if (!view) return false;
-
-		switch(ea.getEventType())
-		{
-			//鼠标按下
-		case(osgGA::GUIEventAdapter::PUSH):
-			{
-				//更新鼠标位置
-				_mx = ea.getX();
-				_my = ea.getY();
-				break;
-			}
-		case(osgGA::GUIEventAdapter::RELEASE):
-			{
-				if (_mx==ea.getX() && _my==ea.getY())
-				{
-					//执行对象选取
-					pick(view.get(), ea.getX(), ea.getY());
-				}
-				break;
-			}
-		default:
-			break;
-		}
-		return false;
-	}
-	//对象选取事件处理器
-	void pick(osg::ref_ptr<osgViewer::View> view, float x, float y)
-	{
-		osg::ref_ptr<osg::Node> node = new osg::Node();
-		osg::ref_ptr<osg::Group> parent = new osg::Group();
-		//创建一个线段交集检测函数
-		osgUtil::LineSegmentIntersector::Intersections intersections;
-		if (view->computeIntersections(x, y, intersections))
-		{
-			osgUtil::LineSegmentIntersector::Intersection intersection = *intersections.begin();
-			osg::NodePath& nodePath = intersection.nodePath;
-			//得到选择的物体
-			node = (nodePath.size()>=1)?nodePath[nodePath.size()-1]:0;
-			parent = (nodePath.size()>=2)?dynamic_cast<osg::Group*>(nodePath[nodePath.size()-2]):0;
-		}        
-
-		//用一种高亮显示来显示物体已经被选中
-		if (parent.get() && node.get())
-		{
-			osg::ref_ptr<osgFX::Scribe> parentAsScribe = dynamic_cast<osgFX::Scribe*>(parent.get());
-			if (!parentAsScribe)
-			{
-				//如果对象选择到，高亮显示
-				osg::ref_ptr<osgFX::Scribe> scribe = new osgFX::Scribe();
-				scribe->addChild(node.get());
-				parent->replaceChild(node.get(),scribe.get());
-			}
-			else
-			{
-				//如果没有没有选择到，则移除高亮显示的对象
-				osg::Node::ParentList parentList = parentAsScribe->getParents();
-				for(osg::Node::ParentList::iterator itr=parentList.begin();
-					itr!=parentList.end();
-					++itr)
-				{
-					(*itr)->replaceChild(parentAsScribe.get(),node.get());
-				}
-			}
-		}
-
-	}
-public:
-	//得到鼠标的位置
-	float _mx ;
-	float _my;
-
-};
-
-int main()
+//***********************************************************
+//FUNCTION:
+osg::Camera* createHUDCamera( double left, double right, double
+							 bottom, double top )
 {
-	//创建Viewer对象，场景浏览器
-	osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
-	viewer->addEventHandler(new PickHandler());
+	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
+	camera->setReferenceFrame( osg::Transform::ABSOLUTE_RF );
+	camera->setClearMask( GL_DEPTH_BUFFER_BIT );
+	camera->setRenderOrder( osg::Camera::POST_RENDER );
+	camera->setAllowEventFocus( false );
+	camera->setProjectionMatrix(
+		osg::Matrix::ortho2D(left, right, bottom, top) );
+	camera->getOrCreateStateSet()->setMode(
+		GL_LIGHTING, osg::StateAttribute::OFF );
+	return camera.release();
+}
 
-	//创建场景组节点
-	osg::ref_ptr<osg::Group> root = new osg::Group();
+//***********************************************************
+//FUNCTION:
+osg::Camera* createRTTCamera( osg::Camera::BufferComponent
+							 buffer, osg::Texture* tex, bool isAbsolute )
+{
+	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
+	camera->setClearColor( osg::Vec4() );
+	camera->setClearMask(
+		GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT );
+	camera->setRenderTargetImplementation(
+		osg::Camera::FRAME_BUFFER_OBJECT );
+	camera->setRenderOrder( osg::Camera::PRE_RENDER );
+	if ( tex )
+	{
+		tex->setFilter( osg::Texture2D::MIN_FILTER,
+			osg::Texture2D::LINEAR );
+		tex->setFilter( osg::Texture2D::MAG_FILTER,
+			osg::Texture2D::LINEAR );
+		camera->setViewport( 0, 0, tex->getTextureWidth(),
+			tex->getTextureHeight() );
+		camera->attach( buffer, tex );
+	}
+	if ( isAbsolute )
+	{
+		camera->setReferenceFrame( osg::Transform::ABSOLUTE_RF );
+		camera->setProjectionMatrix( osg::Matrix::ortho2D(
+			0.0, 1.0, 0.0, 1.0) );
+		camera->setViewMatrix( osg::Matrix::identity() );
+		camera->addChild( createScreenQuad(1.0f, 1.0f, 1.0) );
+	}
+	return camera.release();
+}
 
-	//创建一个节点，读取牛的模型
-	osg::ref_ptr<osg::Node> node = osgDB::readNodeFile("cow.osg");
 
-	//添加到场景
-	root->addChild(node.get());
-
-	//优化场景数据
-	osgUtil::Optimizer optimizer ;
-	optimizer.optimize(root.get()) ;
-
-	viewer->setSceneData(root.get());
-
-	viewer->realize();
-
-	viewer->run();
-
-	return 0 ;
+int main( int argc, char** argv )
+{
+    osg::ArgumentParser arguments( &argc, argv );
+    osg::ref_ptr<osg::Node> scene = osgDB::readNodeFiles( arguments );
+    if ( !scene ) scene = osgDB::readNodeFile("cessna.osg");
+    
+    osg::ref_ptr<osg::Texture2D> tex2D = new osg::Texture2D;
+    tex2D->setTextureSize( 1024, 1024 );
+    tex2D->setInternalFormat( GL_DEPTH_COMPONENT24 );
+    tex2D->setSourceFormat( GL_DEPTH_COMPONENT );
+    tex2D->setSourceType( GL_FLOAT );
+    
+    osg::ref_ptr<osg::Camera> rttCamera = createRTTCamera(osg::Camera::DEPTH_BUFFER, tex2D.get(), false);
+    rttCamera->addChild( scene.get() );
+    
+    osg::ref_ptr<osg::Camera> hudCamera = createHUDCamera(0.0, 1.0, 0.0, 1.0);
+    hudCamera->addChild( createScreenQuad(0.5f, 1.0f,1.0) );
+    hudCamera->getOrCreateStateSet()->setTextureAttributeAndModes( 0, tex2D.get() );
+    
+    osg::ref_ptr<osg::Group> root = new osg::Group;
+    root->addChild( rttCamera.get() );
+    root->addChild( hudCamera.get() );
+    root->addChild( scene.get() );
+    
+    osgViewer::Viewer viewer;
+    viewer.getCamera()->setComputeNearFarMode( osg::CullSettings::DO_NOT_COMPUTE_NEAR_FAR );
+    viewer.setSceneData( root.get() );
+    return viewer.run();
 }

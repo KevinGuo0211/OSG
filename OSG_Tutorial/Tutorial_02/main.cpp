@@ -51,8 +51,8 @@ osg::ref_ptr<osg::Node> createQuad()
 	vc->push_back(osg::Vec4(0.0, 1.0, 0.0, 1.0));
 	vc->push_back(osg::Vec4(0.0, 0.0, 1.0, 1.0));
 	vc->push_back(osg::Vec4(1.0, 1.0, 0.0, 1.0));
-	geom->setColorArray(vc.get());
-	geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+// 	geom->setColorArray(vc.get());
+// 	geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
 
 	//osg::ref_ptr<osg::Vec3Array> nc = new osg::Vec3Array();
 	//nc->push_back(osg::Vec3(0.0, -1.0, 0.0));

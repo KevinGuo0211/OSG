@@ -2,8 +2,6 @@
 
 CPickNode::CPickNode(void) : m_X(0.0), m_Y(0.0)
 {
-	m_LineNode = new osg::Geode;
-	m_MaskNode = new osg::Geode;
 }
 
 CPickNode::~CPickNode(void)
@@ -17,7 +15,6 @@ bool CPickNode::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter
 	osg::ref_ptr<osgViewer::View> view = dynamic_cast<osgViewer::View*>(&aa);
 	if (!view)	return false;
 	
-
 	switch (ea.getEventType())
 	{
 	case (osgGA::GUIEventAdapter::DOUBLECLICK):
@@ -25,16 +22,7 @@ bool CPickNode::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter
 			static bool Flag = true;
 			m_X = ea.getX();
 			m_Y = ea.getY();
-			Flag = __pickNode(view.get(), m_X, m_Y);
-// 			if (Flag)
-// 			{
-// 				Flag = !__pickNode(view.get(), m_X, m_Y);
-// 			}
-// 			else
-// 			{
-// 				Flag = __releaseNode(view.get(), m_X, m_Y);
-// 			}
-			
+			Flag = __pickNode(view.get(), m_X, m_Y);			
 			break;
 		}
 	default:
@@ -48,7 +36,6 @@ bool CPickNode::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter
 //FUNCTION:
 bool CPickNode::__pickNode(osg::ref_ptr<osgViewer::View> vView, float vX, float vY)
 {
-	osg::ref_ptr<osg::MatrixTransform> NodeTransform = new osg::MatrixTransform;
 	osg::ref_ptr<osg::Node> SelectedNode;
 	osg::ref_ptr<osg::Group> ParentNode;
 
@@ -64,33 +51,29 @@ bool CPickNode::__pickNode(osg::ref_ptr<osgViewer::View> vView, float vX, float 
 
 	if (SelectedNode.get() && ParentNode.get())
 	{
-		if (SelectedNode == m_LineNode || SelectedNode == m_MaskNode)
-		{
-			return false;
-		}
+		if (SelectedNode == m_PrevSelectedNode) return false;
 
 		if (SelectedNode != m_PrevSelectedNode && m_PrevSelectedNode)
 		{
-			for (unsigned int i=0; i<m_PrevParentGroup->getNumChildren(); i++)
-			{
-				if (m_PrevParentGroup->getChild(i) == m_LineNode || m_PrevParentGroup->getChild(i) == m_MaskNode)
-				{
-					m_PrevParentGroup->removeChild(i);
-				}
-			}
+			m_PrevParentGroup->replaceChild(m_PrevMatrixTransform.get(), m_PrevSelectedNode.get());
 		}
 
 		m_PrevSelectedNode = SelectedNode;
 		m_PrevParentGroup = ParentNode;
 
-		osg::BoundingSphere NodeBoundingSphere = SelectedNode->getBound();
-		__drawCoordinateSystem(NodeBoundingSphere.center(), NodeBoundingSphere.radius());
-		NodeTransform->addChild(SelectedNode.get());
-		NodeTransform->addChild(m_LineNode.get());
-		NodeTransform->addChild(m_MaskNode.get());
-		ParentNode->replaceChild(SelectedNode.get(), NodeTransform.get());
+		const osg::BoundingSphere& NodeBoundingSphere = SelectedNode->getBound();
+		osg::ref_ptr<osg::Geode> LineNode = new osg::Geode;
+		osg::ref_ptr<osg::Geode> MaskNode = new osg::Geode;
 
-		std::cout << "The coordinate node is selected" << std::endl;
+		__drawCoordinateSystem(NodeBoundingSphere.center(), NodeBoundingSphere.radius(), LineNode, MaskNode);
+		osg::ref_ptr<osg::MatrixTransform> CurMatrixTransform = new osg::MatrixTransform;
+
+		ParentNode->replaceChild(SelectedNode.get(), CurMatrixTransform.get());
+		CurMatrixTransform->addChild(SelectedNode.get());
+		CurMatrixTransform->addChild(LineNode.get());
+		CurMatrixTransform->addChild(MaskNode.get());
+ 		m_PrevMatrixTransform = CurMatrixTransform;
+
 		return true;
 	}
 
@@ -99,64 +82,15 @@ bool CPickNode::__pickNode(osg::ref_ptr<osgViewer::View> vView, float vX, float 
 
 //***********************************************************
 //FUNCTION:
-bool CPickNode::__releaseNode(osg::ref_ptr<osgViewer::View> vView, float vX, float vY)
+void CPickNode::__drawCoordinateSystem(const osg::Vec3f& vOrigin, float vLength, osg::ref_ptr<osg::Geode>& vLineNode,  osg::ref_ptr<osg::Geode>& vMaskNode)
 {
-	osg::ref_ptr<osg::Node> SelectedNode;
-	osg::ref_ptr<osg::Group> ParentNode;
-	osgUtil::LineSegmentIntersector::Intersections intersections;
-	if (vView->computeIntersections(vX, vY, intersections))
-	{
-		osgUtil::LineSegmentIntersector::Intersection intersection = *intersections.begin();
-		osg::NodePath& nodePath = intersection.nodePath;
-
-		SelectedNode = (nodePath.size() > 1) ? nodePath[nodePath.size()-1] : 0;
-		ParentNode = (nodePath.size() >= 2) ? dynamic_cast<osg::Group*>(nodePath[nodePath.size()-2]) : nullptr;
-
-		if (SelectedNode != m_PrevSelectedNode && m_PrevSelectedNode)
-		{
-			for (unsigned int i=0; i<m_PrevParentGroup->getNumChildren(); i++)
-			{
-				if (m_PrevParentGroup->getChild(i) == m_LineNode || m_PrevParentGroup->getChild(i) == m_MaskNode)
-				{
-					m_PrevParentGroup->removeChild(i);
-				}
-			}
-		}
-		else
-		{
-			m_PrevSelectedNode = SelectedNode;
-			m_PrevParentGroup = ParentNode;
-		}
-	}
-
-	if (SelectedNode.get() && ParentNode.get())
-	{
-		for (unsigned int i=0; i<ParentNode->getNumChildren(); i++)
-		{
-			if (ParentNode->getChild(i) == m_LineNode || ParentNode->getChild(i) == m_MaskNode)
-			{
-				ParentNode->removeChild(i);
-				i--;
-			}
-		}
-		std::cout << "The coordinate node is not releaseed" << std::endl;
-		return true;
-	}
-
-	return false;
+	__drawCoordinateLine(vOrigin, vLength, vLineNode);
+	__drawCoordinateMask(vOrigin, vLength, vMaskNode);
 }
 
 //***********************************************************
 //FUNCTION:
-void CPickNode::__drawCoordinateSystem(const osg::Vec3f& vOrigin, float vLength)
-{
-	__drawCoordinateLine(vOrigin, vLength);
-	__drawCoordinateMask(vOrigin, vLength);
-}
-
-//***********************************************************
-//FUNCTION:
-void CPickNode::__drawCoordinateLine(const osg::Vec3f& vOrigin, float vLength)
+void CPickNode::__drawCoordinateLine(const osg::Vec3f& vOrigin, float vLength, osg::ref_ptr<osg::Geode>& vLineNode)
 {
 	osg::ref_ptr<osg::Geometry> CoordGeometry = new osg::Geometry();
 	osg::ref_ptr<osg::Vec3Array> CoordVertex = new osg::Vec3Array();
@@ -182,13 +116,13 @@ void CPickNode::__drawCoordinateLine(const osg::Vec3f& vOrigin, float vLength)
 
 	osg::ref_ptr<osg::LineWidth> LineSize = new osg::LineWidth();
 	LineSize->setWidth(5);
-	m_LineNode->getOrCreateStateSet()->setAttributeAndModes(LineSize.get(), osg::StateAttribute::ON);
-	m_LineNode->addDrawable(CoordGeometry.get());
+	vLineNode->getOrCreateStateSet()->setAttributeAndModes(LineSize.get(), osg::StateAttribute::ON);
+	vLineNode->addDrawable(CoordGeometry.get());
 }
 
 //***********************************************************
 //FUNCTION:
-void CPickNode::__drawCoordinateMask(const osg::Vec3f& vOrigin, float vLength)
+void CPickNode::__drawCoordinateMask(const osg::Vec3f& vOrigin, float vLength, osg::ref_ptr<osg::Geode>& vMaskNode)
 {
 	osg::ref_ptr<osg::Geometry> MakGeom = new osg::Geometry();
 	osg::ref_ptr<osg::Vec3Array> MaskVert = new osg::Vec3Array();
@@ -208,9 +142,9 @@ void CPickNode::__drawCoordinateMask(const osg::Vec3f& vOrigin, float vLength)
 	MakGeom->setColorBinding(osg::Geometry::BIND_OVERALL);
 
 	MakGeom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, 30));
-	m_MaskNode->addDrawable(MakGeom.get());
+	vMaskNode->addDrawable(MakGeom.get());
 
 	osg::ref_ptr<osg::Point> PointSize = new osg::Point(5.0);
-	osg::ref_ptr<osg::StateSet> PointStateSet = m_MaskNode->getOrCreateStateSet();
+	osg::ref_ptr<osg::StateSet> PointStateSet = vMaskNode->getOrCreateStateSet();
 	PointStateSet->setAttribute(PointSize);
 }
