@@ -17,6 +17,9 @@
 
 osg::ref_ptr<osg::Texture2D> g_Tex;
 
+osg::Node* createScene();
+osg::Program* createShaderProgram();
+
 //***********************************************************
 //FUNCTION:
 osg::ref_ptr<osg::Node> createQuadNode()
@@ -32,15 +35,6 @@ osg::ref_ptr<osg::Node> createQuadNode()
 	vc->push_back(osg::Vec3(1.0f,0.0f,1.0f));
 	vc->push_back(osg::Vec3(-1.0f,0.0f,1.0f));
 	Geom->setVertexArray(vc.get());
-
-
-// 	osg::ref_ptr<osg::Vec4Array> VertexColor = new osg::Vec4Array();
-// 	VertexColor->push_back(osg::Vec4(1.0, 0.0, 0.0, 1.0));
-// 	VertexColor->push_back(osg::Vec4(0.0, 1.0, 0.0, 1.0));
-// 	VertexColor->push_back(osg::Vec4(0.0, 0.0, 1.0, 1.0));
-// 	VertexColor->push_back(osg::Vec4(1.0, 1.0, 0.0, 1.0));
-// 	Geom->setColorArray(VertexColor.get());
-// 	Geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
 
 	//…Ë÷√Œ∆¿Ì◊¯±Í
 	osg::ref_ptr<osg::Vec2Array> vt= new osg::Vec2Array();
@@ -60,7 +54,7 @@ osg::ref_ptr<osg::Node> createQuadNode()
 
 //***********************************************************
 //FUNCTION:
-void build_world(osg::Group *root)
+void build_world(osg::Group *vRoot)
 {
 	g_Tex = new osg::Texture2D;
 	g_Tex->setTextureSize(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -70,8 +64,9 @@ void build_world(osg::Group *root)
 	g_Tex->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
 	g_Tex->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
 
-	osg::ref_ptr<osg::Node> SubGraph = osgDB::readNodeFile("../OSGData/cow.osg");
-	if (!SubGraph) return;
+	osg::Node *pSubGraph = createScene();
+	osg::Program *pProgram = createShaderProgram();
+	pSubGraph->getOrCreateStateSet()->setAttribute(pProgram, osg::StateAttribute::ON);
 
 	osg::ref_ptr<osg::Camera> RTTCamera = new osg::Camera;
 	RTTCamera->setClearColor(osg::Vec4f(1.0, 1.0, 1.0, 1.0));
@@ -79,18 +74,7 @@ void build_world(osg::Group *root)
 	RTTCamera->setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	RTTCamera->setRenderOrder(osg::Camera::PRE_RENDER);
 
-	const osg::BoundingSphere& BoundingSphere = SubGraph->getBound();
-// 	float ZNear = 1.0f * BoundingSphere.radius();
-// 	float ZFar  = 3.0f * BoundingSphere.radius();
-// 
-// 	// 2:1 aspect ratio as per flag geomtry below.
-// 	float Proj_top   = 0.5f*ZNear;
-// 	float Proj_right = 0.5f*ZNear;
-// 	ZNear *= 0.9f;
-// 	ZFar *= 1.1f;
-// 
-// 	// set up projection.
-// 	RTTCamera->setProjectionMatrixAsFrustum(-Proj_right,Proj_right,-Proj_top,Proj_top,ZNear,ZFar);
+	const osg::BoundingSphere& BoundingSphere = pSubGraph->getBound();
 	RTTCamera->setProjectionMatrixAsPerspective(60.0, SCREEN_WIDTH/SCREEN_HEIGHT, 0.1, 100);
 
 	// set view
@@ -102,9 +86,9 @@ void build_world(osg::Group *root)
 	// attach the texture and use it as the color buffer.
 	RTTCamera->attach(osg::Camera::COLOR_BUFFER0, g_Tex.get());
 	// attach the subgraph
-	RTTCamera->addChild(SubGraph.get());
+	RTTCamera->addChild(pSubGraph);
 	// attach the camera to the main scene graph.    
-	root->addChild(RTTCamera.get());
+	vRoot->addChild(RTTCamera.get());
 }
 
 int main()
@@ -142,12 +126,45 @@ int main()
 	QuadNode->getOrCreateStateSet()->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
 	Root->addChild(QuadNode);
 	
-	//osg::ref_ptr<osg::Node> SubGraph = osgDB::readNodeFile("../OSGData/cow.osg");
-	//Root->addChild(SubGraph);
 	Viewer.setSceneData(Root.get());
 	Viewer.realize();
 
 	Viewer.run();
 
 	return 0;
+}
+
+//***********************************************************
+//FUNCTION:
+osg::Node* createScene()
+{
+	osg::Group *pRoot = new osg::Group;
+
+	osg::Group *pPrimaryPassNode = new osg::Group;
+	pRoot->addChild(pPrimaryPassNode);
+	osg::MatrixTransform *pTransform = new osg::MatrixTransform;
+	pPrimaryPassNode->addChild(pTransform);
+
+	osg::Node *pModel = osgDB::readNodeFile("../Model/bunny.ive");
+	pModel->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+	pModel->getOrCreateStateSet()->setMode(GL_NORMALIZE, osg::StateAttribute::ON | osg::StateAttribute::PROTECTED);
+
+	pTransform->addChild(pModel);
+	return pRoot;
+}
+
+osg::Program* createShaderProgram()
+{
+	osg::Shader *pVertexShader = new osg::Shader;
+	pVertexShader->loadShaderSourceFromFile("shaders/vertPerpixelShading.glsl");
+	pVertexShader->setType(osg::Shader::VERTEX);
+	osg::Shader *pFragmentShader = new osg::Shader;
+	pFragmentShader->loadShaderSourceFromFile("shaders/fragPerpixelShading.glsl");
+	pFragmentShader->setType(osg::Shader::FRAGMENT);
+
+	osg::Program *pProgram = new osg::Program;
+	pProgram->addShader(pVertexShader);
+	pProgram->addShader(pFragmentShader);
+
+	return pProgram;
 }

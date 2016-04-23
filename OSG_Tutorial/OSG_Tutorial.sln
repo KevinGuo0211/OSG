@@ -85,6 +85,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSG_fbo", "OSG_fbo\OSG_fbo.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSG_osgprerender", "OSG_osgprerender\OSG_osgprerender.vcxproj", "{B8E61B4C-1C9D-420A-9389-1FA4EDE08C6E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSG_fbo_shader", "OSG_fbo_shader\OSG_fbo_shader.vcxproj", "{DF66A85D-4D77-4C99-BFB5-FBB10FDD45B8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSG_fbo_shader_2", "OSG_fbo_shader_2\OSG_fbo_shader_2.vcxproj", "{E056C7B7-B2C8-4AD6-A8B7-EE1056FD39E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -259,6 +263,14 @@ Global
 		{B8E61B4C-1C9D-420A-9389-1FA4EDE08C6E}.Debug|Win32.Build.0 = Debug|Win32
 		{B8E61B4C-1C9D-420A-9389-1FA4EDE08C6E}.Release|Win32.ActiveCfg = Release|Win32
 		{B8E61B4C-1C9D-420A-9389-1FA4EDE08C6E}.Release|Win32.Build.0 = Release|Win32
+		{DF66A85D-4D77-4C99-BFB5-FBB10FDD45B8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DF66A85D-4D77-4C99-BFB5-FBB10FDD45B8}.Debug|Win32.Build.0 = Debug|Win32
+		{DF66A85D-4D77-4C99-BFB5-FBB10FDD45B8}.Release|Win32.ActiveCfg = Release|Win32
+		{DF66A85D-4D77-4C99-BFB5-FBB10FDD45B8}.Release|Win32.Build.0 = Release|Win32
+		{E056C7B7-B2C8-4AD6-A8B7-EE1056FD39E8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E056C7B7-B2C8-4AD6-A8B7-EE1056FD39E8}.Debug|Win32.Build.0 = Debug|Win32
+		{E056C7B7-B2C8-4AD6-A8B7-EE1056FD39E8}.Release|Win32.ActiveCfg = Release|Win32
+		{E056C7B7-B2C8-4AD6-A8B7-EE1056FD39E8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

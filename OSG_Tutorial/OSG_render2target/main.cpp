@@ -42,15 +42,17 @@ void CreateTexture(osgViewer::Viewer *viewer){
   osg::ref_ptr<osg::Camera>master=new osg::Camera;
   master->setGraphicsContext(gc);
   master->setViewport(0, 0, width, height);
-  viewer->addSlave(master.get());
+ // viewer->addSlave(master.get());
+ // viewer->setCamera(master);
+  
   cout<<height<<"  ,  "<<width<<endl;
 
-  osg::ref_ptr<osg::Camera>rttCamera=new osg::Camera;
+  osg::ref_ptr<osg::Camera> rttCamera = new osg::Camera;
   rttCamera->setRenderOrder(osg::Camera::PRE_RENDER);//×îÏÈäÖÈ¾
   rttCamera->setGraphicsContext(gc);
   rttCamera->setViewport(0, 0, width, height);
-  rttCamera->addChild(osgDB::readNodeFile("ceep.ive"));
-  viewer->addSlave(rttCamera,false);
+  rttCamera->addChild(osgDB::readNodeFile("../OSGData/cow.osg"));
+//  viewer->addSlave(rttCamera,false);
 
 
 
@@ -84,13 +86,13 @@ void CreateTexture(osgViewer::Viewer *viewer){
   gm->getOrCreateStateSet()->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
 
   osg::ref_ptr<osg::Texture2D> t2d = new osg::Texture2D;
-/*  osg::ref_ptr<osg::Image>image=osgDB::readImageFile("Images/blueFlowers.png");
+  osg::ref_ptr<osg::Image>image=osgDB::readImageFile("../OSGData/Images/blueFlowers.png");
   if(!image){
     cout<<"image is NULL"<<endl;
     return;
   }
   t2d->setImage(0,image);
-*/
+
 
   t2d->setInternalFormat(GL_RGBA);
 //  viewer->getCamera()->attach(osg::Camera::COLOR_BUFFER, t2d);
@@ -99,8 +101,10 @@ void CreateTexture(osgViewer::Viewer *viewer){
 
   gm->getOrCreateStateSet()->setTextureAttributeAndModes(0, t2d,osg::StateAttribute::ON);
 
-  root->addChild(osgDB::readNodeFile("ceep.ive"));
-
+ // root->addChild(osgDB::readNodeFile("../OSGData/cow.osg"));
+  root->addChild(rttCamera);
+  //root->addChild(master);
+  
   viewer->setSceneData(root);
   return;
 
