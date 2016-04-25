@@ -103,20 +103,22 @@ int main()
 	pTraits->windowDecoration = true;
 	pTraits->doubleBuffer = true;
 	osg::GraphicsContext* pGraphicsContext = osg::GraphicsContext::createGraphicsContext(pTraits);
+//	pGraphicsContext->getState()->setUseModelViewAndProjectionUniforms(true);   //activate osg specified shader uniforms, such as osg_ModelViewProjectionMatrix
+//	pGraphicsContext->getState()->setUseVertexAttributeAliasing(true);			 //activate something like: layout (location = 0) in vec4 _VertexPosition;
 
 	osg::ref_ptr<osg::Camera> pCamera = Viewer.getCamera();
 	pCamera->setGraphicsContext(pGraphicsContext);
 	
-	osgGA::CameraManipulator* pCameraManipulator = new osgGA::TrackballManipulator();
-	Viewer.setCameraManipulator(pCameraManipulator);
+// 	osgGA::CameraManipulator* pCameraManipulator = new osgGA::TrackballManipulator();
+// 	Viewer.setCameraManipulator(pCameraManipulator);
 	
 	pCamera->setClearColor(osg::Vec4f(1.0, 1.0, 1.0, 1.0));
 	pCamera->setViewport(0, 0, SCREEN_WIDTH, SCREEN_WIDTH);
 	pCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	pCamera->setViewMatrix(osg::Matrix::identity());
-	pCamera->setProjectionMatrix(osg::Matrix::identity());
-	pCameraManipulator->updateCamera(*pCamera);
+// 	pCamera->setViewMatrix(osg::Matrix::identity());
+// 	pCamera->setProjectionMatrix(osg::Matrix::identity());
+// 	pCameraManipulator->updateCamera(*pCamera);
 
 	osg::ref_ptr<osg::Group> Root = new osg::Group;
 	build_world(Root.get());
@@ -128,6 +130,10 @@ int main()
 	
 	Viewer.setSceneData(Root.get());
 	Viewer.realize();
+
+	osg::State* state = Viewer.getCamera()->getGraphicsContext()->getState(); 
+	state->setUseModelViewAndProjectionUniforms(true); 
+	state->setUseVertexAttributeAliasing(true);
 
 	Viewer.run();
 
