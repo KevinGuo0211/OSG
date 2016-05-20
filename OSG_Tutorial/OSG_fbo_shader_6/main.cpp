@@ -4,6 +4,7 @@
 #include <osg/Geode>
 #include <osg/Viewport>
 #include <osg/Texture2D>
+#include <osg/Image>
 #include <osg/MatrixTransform>
 #include <osg/FrameBufferObject>
 #include <osgViewer/Viewer>
@@ -11,12 +12,16 @@
 #include <osgGA/CameraManipulator>
 #include <osgGA/TrackballManipulator>
 #include <osgDB/ReadFile>
+#include <osgDB/WriteFile>
 
 #define SCREEN_WIDTH  1024
 #define SCREEN_HEIGHT 768
 
 osg::ref_ptr<osg::Texture2D> g_Tex_0;
 osg::ref_ptr<osg::Texture2D> g_Tex_1;
+
+osg::Camera* g_pMasterCamera;
+osg::Camera* g_pRTTCamera; 
 
 osg::Node* createScene();
 osg::ref_ptr<osg::Node> createQuadNode();
@@ -53,22 +58,21 @@ int main()
 	
 	osgGA::CameraManipulator* pCameraManipulator = new osgGA::TrackballManipulator();
 	Viewer.setCameraManipulator(pCameraManipulator);	
-	pCameraManipulator->updateCamera(*pCamera);
-
+	//pCameraManipulator->updateCamera(*pCamera);
+	pCameraManipulator->updateCamera(*g_pMasterCamera);
 	osg::ref_ptr<osg::Group> Root = new osg::Group;
 	PerpixelShading(Root.get());
-
+	
+// 	osg::Image* pImage = g_Tex_0->getImage(0);
+// 	image->allocateImage(SCREEN_WIDTH, SCREEN_WIDTH, 1, GL_RGBA, GL_FLOAT);
+// 	image->setInternalTextureFormat(GL_RGBA16F_ARB);
+//	image->readImageFromCurrentTexture();
+	
+//	bool Flag = osgDB::writeImageFile(*pImage, "test.png");
+//	pCameraManipulator->updateCamera(*pRTTCamera);
 //  	osg::ref_ptr<osg::Node> QuadNode = createQuadNode();
 //  	QuadNode->getOrCreateStateSet()->setTextureAttributeAndModes(0, g_Tex_1.get(), osg::StateAttribute::ON);
 //  	QuadNode->getOrCreateStateSet()->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
-// 
-// 	osg::Program *pCopy2ScreenProgram = createCopy2ScreenProgram();
-// // 	pCopy2ScreenProgram->addBindFragDataLocation("_VertexPosition",0);  
-// // 	pCopy2ScreenProgram->addBindFragDataLocation("_VertexTexCoord0",1);
-// 
-// 	QuadNode->getOrCreateStateSet()->setAttribute(pCopy2ScreenProgram, osg::StateAttribute::ON);
-// 	osg::Uniform* pUniform = new osg::Uniform("uColorBuf", 0);
-// 	QuadNode->getOrCreateStateSet()->addUniform(pUniform);
 // 
 // 	Root->addChild(QuadNode);
 	Root->addChild(createMasterCamera());
@@ -138,38 +142,38 @@ osg::Program* createCopy2ScreenProgram()
 //FUNCTION:
 osg::Camera* createRenderTargetCamera(osg::Texture2D* vRenderTexture0, osg::Texture2D* vRenderTexture1, osg::Node* vSubGraph)
 {
-	osg::Camera* pRTTCamera = new osg::Camera;
-	_ASSERT(pRTTCamera && vRenderTexture0 && vRenderTexture1 && vSubGraph);
+	g_pRTTCamera = new osg::Camera;
+	_ASSERT(g_pRTTCamera && vRenderTexture0 && vRenderTexture1 && vSubGraph);
 
-	pRTTCamera->setClearColor(osg::Vec4f(1.0, 1.0, 1.0, 1.0));
-	pRTTCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	pRTTCamera->setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-	pRTTCamera->setRenderOrder(osg::Camera::PRE_RENDER);
+	g_pRTTCamera->setClearColor(osg::Vec4f(1.0, 1.0, 1.0, 1.0));
+	g_pRTTCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	g_pRTTCamera->setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	g_pRTTCamera->setRenderOrder(osg::Camera::PRE_RENDER);
 
 	const osg::BoundingSphere& BoundingSphere = vSubGraph->getBound();
-	pRTTCamera->setProjectionMatrixAsPerspective(60.0, SCREEN_WIDTH/SCREEN_HEIGHT, 0.1, 100);
+	g_pRTTCamera->setProjectionMatrixAsPerspective(60.0, SCREEN_WIDTH/SCREEN_HEIGHT, 0.1, 100);
 
-	pRTTCamera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
-	pRTTCamera->setViewMatrixAsLookAt(BoundingSphere.center()+osg::Vec3(0.0f,-2.0f,0.0f)*BoundingSphere.radius(), BoundingSphere.center(),osg::Vec3(0.0f,0.0f,1.0f));
-	pRTTCamera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
-	pRTTCamera->attach(osg::Camera::COLOR_BUFFER0, vRenderTexture0);
-	pRTTCamera->attach(osg::Camera::COLOR_BUFFER1, vRenderTexture1);
+	g_pRTTCamera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
+	g_pRTTCamera->setViewMatrixAsLookAt(BoundingSphere.center()+osg::Vec3(0.0f,-2.0f,0.0f)*BoundingSphere.radius(), BoundingSphere.center(),osg::Vec3(0.0f,0.0f,1.0f));
+	g_pRTTCamera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
+	g_pRTTCamera->attach(osg::Camera::COLOR_BUFFER0, vRenderTexture0);
+	g_pRTTCamera->attach(osg::Camera::COLOR_BUFFER1, vRenderTexture1);
 
-	pRTTCamera->addChild(vSubGraph);
+	g_pRTTCamera->addChild(vSubGraph);
 
-	return pRTTCamera;
+	return g_pRTTCamera;
 }
 
 //***********************************************************
 //FUNCTION:
 osg::Camera* createMasterCamera()
 {
-	osg::Camera* pMasterCamera = new osg::Camera;
+	g_pMasterCamera = new osg::Camera;
 
-	pMasterCamera->setClearColor(osg::Vec4f(1.0, 1.0, 1.0, 1.0));
-	pMasterCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	pMasterCamera->setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-	pMasterCamera->setRenderOrder(osg::Camera::POST_RENDER);
+	g_pMasterCamera->setClearColor(osg::Vec4f(1.0, 1.0, 1.0, 1.0));
+	g_pMasterCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	g_pMasterCamera->setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	g_pMasterCamera->setRenderOrder(osg::Camera::POST_RENDER);
 
 	osg::ref_ptr<osg::Node> QuadNode = createQuadNode();
 	QuadNode->getOrCreateStateSet()->setTextureAttributeAndModes(0, g_Tex_0.get(), osg::StateAttribute::ON);
@@ -188,9 +192,9 @@ osg::Camera* createMasterCamera()
 	QuadNode->getOrCreateStateSet()->addUniform(pUniform0);
 	QuadNode->getOrCreateStateSet()->addUniform(pUniform1);
 
-	pMasterCamera->addChild(QuadNode);
+	g_pMasterCamera->addChild(QuadNode);
 
-	return pMasterCamera;
+	return g_pMasterCamera;
 }
 
 //***********************************************************

@@ -58,13 +58,7 @@ int main()
 	PerpixelShading(Root.get());
 
  	osg::ref_ptr<osg::Node> QuadNode = createQuadNode();
-	osg::ref_ptr<osg::Texture2D> FlowersTex = new osg::Texture2D;
-	//FlowersTex->setDataVariance(osg::Object::DYNAMIC);
-	osg::ref_ptr<osg::Image>image=osgDB::readImageFile("../OSGData/Images/blueFlowers.png");
-	FlowersTex->setImage(0,image);
 
-//	QuadNode->getOrCreateStateSet()->setTextureAttributeAndModes(0, FlowersTex.get(), osg::StateAttribute::ON);
- 
  	QuadNode->getOrCreateStateSet()->setTextureAttributeAndModes(0, g_Tex.get(), osg::StateAttribute::ON);
  	QuadNode->getOrCreateStateSet()->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
 

@@ -21,6 +21,5 @@ void main()
 		vec3 DiffuseColor = -uLightDiffuse * uMaterialDiffuse * t;
 		gl_FragData[0].xyz += DiffuseColor;
 	}
-
 	gl_FragData[1] = vec4(1.0, 1.0, 0.0, 1.0);
 }

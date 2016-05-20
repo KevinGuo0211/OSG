@@ -252,7 +252,7 @@ int main()
 
 	osg::Camera::RenderTargetImplementation renderImplementation = osg::Camera::FRAME_BUFFER_OBJECT;
 
-	bool useImage = false;
+	bool useImage = true;
 
 	//¶ÁÈ¡Ä£ÐÍ
 	osg::ref_ptr<osg::Node> loadedModel = osgDB::readNodeFile("../OSGData/cessna.osg");

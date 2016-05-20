@@ -11,12 +11,13 @@
 #include <osgGA/CameraManipulator>
 #include <osgGA/TrackballManipulator>
 #include <osgDB/ReadFile>
+#include <osgDB/WriteFile>
 
 #define SCREEN_WIDTH  1024
 #define SCREEN_HEIGHT 768
 
 osg::ref_ptr<osg::Texture2D> g_Tex;
-
+osg::ref_ptr<osg::Camera> g_RTTCamera;
 osg::Node* createScene();
 osg::Program* createShaderProgram();
 
@@ -68,27 +69,27 @@ void build_world(osg::Group *vRoot)
 	osg::Program *pProgram = createShaderProgram();
 	pSubGraph->getOrCreateStateSet()->setAttribute(pProgram, osg::StateAttribute::ON);
 
-	osg::ref_ptr<osg::Camera> RTTCamera = new osg::Camera;
-	RTTCamera->setClearColor(osg::Vec4f(1.0, 1.0, 1.0, 1.0));
-	RTTCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	RTTCamera->setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-	RTTCamera->setRenderOrder(osg::Camera::PRE_RENDER);
+	g_RTTCamera = new osg::Camera;
+	g_RTTCamera->setClearColor(osg::Vec4f(1.0, 1.0, 1.0, 1.0));
+	g_RTTCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	g_RTTCamera->setViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	g_RTTCamera->setRenderOrder(osg::Camera::PRE_RENDER);
 
 	const osg::BoundingSphere& BoundingSphere = pSubGraph->getBound();
-	RTTCamera->setProjectionMatrixAsPerspective(60.0, SCREEN_WIDTH/SCREEN_HEIGHT, 0.1, 100);
+	g_RTTCamera->setProjectionMatrixAsPerspective(60.0, SCREEN_WIDTH/SCREEN_HEIGHT, 0.1, 100);
 
 	// set view
-	RTTCamera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
-	RTTCamera->setViewMatrixAsLookAt(BoundingSphere.center()+osg::Vec3(0.0f,-2.0f,0.0f)*BoundingSphere.radius(),BoundingSphere.center(),osg::Vec3(0.0f,0.0f,1.0f));
-//	RTTCamera->setViewMatrixAsLookAt(osg::Vec3(0.0, -15.0, 0.0), osg::Vec3(0.0, 0.0, 0.0), osg::Vec3(0.0, 1.0, 0.0));
+	g_RTTCamera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
+	g_RTTCamera->setViewMatrixAsLookAt(BoundingSphere.center()+osg::Vec3(0.0f,-2.0f,0.0f)*BoundingSphere.radius(),BoundingSphere.center(),osg::Vec3(0.0f,0.0f,1.0f));
 	
-	RTTCamera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
+	g_RTTCamera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
 	// attach the texture and use it as the color buffer.
-	RTTCamera->attach(osg::Camera::COLOR_BUFFER0, g_Tex.get());
+	g_RTTCamera->attach(osg::Camera::COLOR_BUFFER0, g_Tex.get());
 	// attach the subgraph
-	RTTCamera->addChild(pSubGraph);
+	g_RTTCamera->addChild(pSubGraph);
 	// attach the camera to the main scene graph.    
-	vRoot->addChild(RTTCamera.get());
+	vRoot->addChild(g_RTTCamera.get());
+//	vRoot->addChild(pSubGraph);
 }
 
 int main()
@@ -109,19 +110,20 @@ int main()
 	osg::ref_ptr<osg::Camera> pCamera = Viewer.getCamera();
 	pCamera->setGraphicsContext(pGraphicsContext);
 	
-// 	osgGA::CameraManipulator* pCameraManipulator = new osgGA::TrackballManipulator();
-// 	Viewer.setCameraManipulator(pCameraManipulator);
+ 	osgGA::CameraManipulator* pCameraManipulator = new osgGA::TrackballManipulator();
+ 	Viewer.setCameraManipulator(pCameraManipulator);
 	
 	pCamera->setClearColor(osg::Vec4f(1.0, 1.0, 1.0, 1.0));
 	pCamera->setViewport(0, 0, SCREEN_WIDTH, SCREEN_WIDTH);
 	pCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-// 	pCamera->setViewMatrix(osg::Matrix::identity());
-// 	pCamera->setProjectionMatrix(osg::Matrix::identity());
-// 	pCameraManipulator->updateCamera(*pCamera);
-
+	pCamera->setViewMatrix(osg::Matrix::identity());
+	pCamera->setProjectionMatrix(osg::Matrix::identity());
+	pCameraManipulator->updateCamera(*pCamera);
+	
 	osg::ref_ptr<osg::Group> Root = new osg::Group;
 	build_world(Root.get());
+	
 
 	osg::ref_ptr<osg::Node> QuadNode = createQuadNode();
 	QuadNode->getOrCreateStateSet()->setTextureAttributeAndModes(0, g_Tex.get(), osg::StateAttribute::ON);
@@ -131,11 +133,13 @@ int main()
 	Viewer.setSceneData(Root.get());
 	Viewer.realize();
 
-	osg::State* state = Viewer.getCamera()->getGraphicsContext()->getState(); 
-	state->setUseModelViewAndProjectionUniforms(true); 
-	state->setUseVertexAttributeAliasing(true);
-
-	Viewer.run();
+	while (!Viewer.done())
+	{
+// 		g_RTTCamera->setViewMatrix(pCamera->getViewMatrix());
+// 		g_RTTCamera->setProjectionMatrix(pCamera->getProjectionMatrix());
+		pCameraManipulator->updateCamera(*g_RTTCamera.get());
+		Viewer.frame();
+	}
 
 	return 0;
 }
